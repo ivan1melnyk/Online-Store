@@ -1,33 +1,44 @@
 import React from "react";
 
-const CreateType = (show, onHide) => {
+const CreateType = ({ show, onHide }) => {
   return (
-    <div class="modal" tabindex="-1" show={show} onHide={onHide}>
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Add new Type</h5>
+    <div
+      className={`modal fade ${show ? "show" : ""}`}
+      tabIndex="-1"
+      style={{
+        display: show ? "block" : "none",
+        backgroundColor: show ? "rgba(0,0,0,0.5)" : "transparent",
+      }}
+      role="dialog"
+    >
+      <div className="modal-dialog">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">Add new Type</h5>
             <button
               type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
+              className="btn-close"
               aria-label="Close"
+              onClick={onHide}
             ></button>
           </div>
-          <div class="modal-body">
-            <p>Modal body text goes here.</p>
+
+          <div className="modal-body">
+            <form>
+              <input className="form-control" placeholder="Add name of type" />
+            </form>
           </div>
-          <div class="modal-footer">
+
+          <div className="modal-footer">
             <button
               type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-              onClick={() => }
+              className="btn btn-secondary"
+              onClick={onHide}
             >
               Close
             </button>
-            <button type="button" class="btn btn-primary">
-              Save changes
+            <button type="button" className="btn btn-primary" onClick={onHide}>
+              Add
             </button>
           </div>
         </div>
