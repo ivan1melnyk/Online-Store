@@ -3,16 +3,21 @@ import star from "../assets/star.png";
 import { useNavigate } from "react-router-dom";
 import { DEVICE_ROUTE } from "../utils/consts";
 
-const DeviceItem = ({ device }) => {
+const DeviceItem = ({ device, onRemove }) => {
   const navigator = useNavigate();
-  console.log(navigator);
+
+  const handleRemove = (e) => {
+    e.stopPropagation(); // Prevent navigation to device page
+    onRemove(device.id);
+  };
+
   return (
     <div
       className="col-3 mb-3 mt-3"
       onClick={() => navigator(DEVICE_ROUTE + "/" + device.id)}
     >
       <div
-        className="card border-light"
+        className="card border-light p-2"
         style={{ width: 150, cursor: "pointer" }}
       >
         <img
@@ -28,6 +33,14 @@ const DeviceItem = ({ device }) => {
           </div>
         </div>
         <div>{device.name}</div>
+        {onRemove && (
+          <button
+            className="btn btn-outline-danger btn-sm mt-2"
+            onClick={handleRemove}
+          >
+            Remove
+          </button>
+        )}
       </div>
     </div>
   );

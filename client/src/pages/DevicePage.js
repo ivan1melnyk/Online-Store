@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import bigStar from "../assets/bigStar.png";
 import { useParams } from "react-router-dom";
 import { fetchOneDevice } from "../http/deviceAPI";
+import { authContext } from "../store/AuthProvider";
+
 
 const DevicePage = () => {
+  const authCtx = useContext(authContext);
   const [device, setDevice] = useState({ info: [] });
   const { id } = useParams();
   useEffect(() => {
@@ -48,7 +51,11 @@ const DevicePage = () => {
             }}
           >
             <h3>{device.price}</h3>
-            <button className="btn btn-outline-dark">Add to basket</button>
+            <button className="btn btn-outline-dark"
+            onClick={async () => {
+              authCtx.addDeviceToBasket(device)
+            }}
+            >Add to basket</button>
           </div>
         </div>
       </div>
