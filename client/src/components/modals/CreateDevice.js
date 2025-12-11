@@ -1,14 +1,60 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Context } from "../../index";
+import { deviceContext } from "../../store/DeviceProvider";
+import {
+  createDevice,
+  fetchDevices,
+  fetchTypes,
+  fetchBrands,
+} from "../../http/deviceAPI";
+import e from "cors";
 
 const CreateDevice = ({ show, onHide }) => {
-  const { device } = useContext(Context);
+  const deviceCtx = useContext(deviceContext);
+
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState(0);
+  const [file, setFile] = useState(null);
   const [info, setInfo] = useState([]);
+
+  useEffect(() => {
+    fetchTypes().then((data) => deviceCtx.setTypes(data));
+    fetchBrands().then((data) => deviceCtx.setBrands(data));
+  }, []);
+
   const addInfo = () => {
     setInfo([...info, { title: "", description: "", number: Date.now() }]);
   };
+
   const removeInfo = (number) => {
     setInfo(info.filter((i) => i.number !== number));
+  };
+
+  const changeInfo = (key, value, number) => {
+    setInfo(
+      info.map((i) => (i.number === number ? { ...i, [key]: value } : i))
+    );
+  };
+
+  const selectFile = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const addDevice = () => {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("price", price);
+    formData.append("img", file);
+    formData.append("brandId", deviceCtx.selectedBrand.id);
+    formData.append("typeId", deviceCtx.selectedType.id);
+    formData.append("info", JSON.stringify(info));
+
+    createDevice(formData).then((data) => {
+      console.log("22222222", data);
+      // <-- The error happens here
+      //fetchDevices().then((data) => deviceCtx.setDevices(data));
+      onHide();
+    });
   };
 
   return (
@@ -24,7 +70,7 @@ const CreateDevice = ({ show, onHide }) => {
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Add new Type</h5>
+            <h5 className="modal-title">Add new Device</h5>
             <button
               type="button"
               className="btn-close"
@@ -42,12 +88,17 @@ const CreateDevice = ({ show, onHide }) => {
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  Choose the type of device
+                  {deviceCtx.selectedType.name || "Choose the type of device"}
                 </button>
                 <ul class="dropdown-menu">
-                  {device.types.map((type) => (
+                  {(deviceCtx.types || []).map((type) => (
                     <li>
-                      <a class="dropdown-item" key={type.id} href="#">
+                      <a
+                        class="dropdown-item"
+                        onClick={() => deviceCtx.setSelectedType(type)}
+                        key={type.id}
+                        href="#"
+                      >
                         {type.name}
                       </a>
                     </li>
@@ -61,12 +112,17 @@ const CreateDevice = ({ show, onHide }) => {
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  Choose the brand of device
+                  {deviceCtx.selectedBrand.name || "Choose the brand of device"}
                 </button>
                 <ul class="dropdown-menu">
-                  {device.brands.map((brand) => (
+                  {(deviceCtx.brands || []).map((brand) => (
                     <li>
-                      <a class="dropdown-item" key={brand.id} href="#">
+                      <a
+                        class="dropdown-item"
+                        onClick={() => deviceCtx.setSelectedBrand(brand)}
+                        key={brand.id}
+                        href="#"
+                      >
                         {brand.name}
                       </a>
                     </li>
@@ -74,37 +130,53 @@ const CreateDevice = ({ show, onHide }) => {
                 </ul>
               </div>
               <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="form-control mt-3"
                 placeholder="Write the name of device"
               />
               <input
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
                 className="form-control mt-3"
                 placeholder="Write the price of device"
                 type="number"
               />
-              <input className="form-control mt-3" type="file" />
+              <input
+                className="form-control mt-3"
+                type="file"
+                onChange={selectFile}
+              />
             </form>
             <hr />
             <button className="btn btn-outline-dark" onClick={addInfo}>
               Add new character
             </button>
-            {info.map((i) => (
+            {(info || []).map((i) => (
               <div className="row mt-3" key={i.number}>
                 <div className="col-md-4">
                   <input
                     className="form-control"
+                    value={i.title}
+                    onChange={(e) =>
+                      changeInfo("title", e.target.value, i.number)
+                    }
                     placeholder="Write name of character"
                   />
                 </div>
                 <div className="col-md-4">
                   <input
                     className="form-control"
+                    value={i.description}
+                    onChange={(e) =>
+                      changeInfo("description", e.target.value, i.number)
+                    }
                     placeholder="Write description of character"
                   />
                 </div>
                 <div className="col-md-4">
                   <button
-                    className="btn btn-outline-denger"
+                    className="btn btn-outline-danger"
                     onClick={() => removeInfo(i.number)}
                   >
                     Delete
@@ -122,7 +194,11 @@ const CreateDevice = ({ show, onHide }) => {
             >
               Close
             </button>
-            <button type="button" className="btn btn-primary" onClick={onHide}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={addDevice}
+            >
               Add
             </button>
           </div>

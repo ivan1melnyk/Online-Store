@@ -28,12 +28,20 @@ class UserController {
       return next(ApiError.badRequerst("A user with the name exist yet"));
     }
   }
+
   async login(req, res, next) {
+    console.log("LOGIN CONTROLLER");
+
     const { email, password } = req.body;
+    console.log(req.body);
+
     const user = await User.findOne({ where: { email } });
+
+    console.log(user);
     if (user === null) {
       return next(ApiError.internal("The user with this email is not found"));
     }
+
     let comparePassword = bcrypt.compareSync(password, user.password);
     if (!comparePassword) {
       return next(ApiError.badRequerst("The false password"));
@@ -41,9 +49,11 @@ class UserController {
     const token = generateJwt(user.id, user.email, user.role);
     return res.json({ token });
   }
+
   async check(req, res, next) {
-    res.json({ message: "ALL RIGHT!" });
+    res.json({ message: "ALL RIGHT!", user: req.user, token: req.token});
   }
+
   async remove(req, res, next) {
     try {
       const token = req.headers.authorization.split(" ")[1];

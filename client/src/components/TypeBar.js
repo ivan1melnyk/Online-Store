@@ -1,26 +1,31 @@
 import React, { useContext } from "react";
-import { observer } from "mobx-react-lite";
-import { Context } from "../index";
 
-const TypeBar = observer(() => {
-  const { device } = useContext(Context);
+import { deviceContext } from "../store/DeviceProvider";
+
+const TypeBar = () => {
+  const deviceCtx = useContext(deviceContext);
 
   return (
     <ul className="list-group">
-      {device.types.map((type) => (
-        <li
-          key={type.id}
-          style={{ cursor: "pointer" }}
-          onClick={() => device.setSelectedType(type)}
-          className={`list-group-item ${
-            type.id === device.selectedType?.id ? "active" : ""
-          }`}
-        >
-          {type.name}
-        </li>
-      ))}
+      {deviceCtx.types.map(
+        (type) => (
+          console.log(type),
+          (
+            <li
+              key={type.id}
+              style={{ cursor: "pointer" }}
+              onClick={() => deviceCtx.setSelectedType(type)}
+              className={`list-group-item ${
+                type.id === deviceCtx.selectedType?.id ? "active" : ""
+              }`}
+            >
+              {type.name}
+            </li>
+          )
+        )
+      )}
     </ul>
   );
-});
+};
 
 export default TypeBar;

@@ -1,6 +1,16 @@
 import React from "react";
+import { useState } from "react";
+import { createBrand } from "../../http/deviceAPI";
 
 const CreateBrand = ({ show, onHide }) => {
+    const [value, setValue] = useState("");
+    const addBrand= () => {
+      createBrand({ name: value }).then((data) => {
+        setValue("");
+        onHide();
+      });
+    };
+
   return (
     <div
       className={`modal fade ${show ? "show" : ""}`}
@@ -14,7 +24,7 @@ const CreateBrand = ({ show, onHide }) => {
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Add new Type</h5>
+            <h5 className="modal-title">Add new Brand</h5>
             <button
               type="button"
               className="btn-close"
@@ -24,8 +34,13 @@ const CreateBrand = ({ show, onHide }) => {
           </div>
 
           <div className="modal-body">
-            <form>
-              <input className="form-control" placeholder="Add name of brand" />
+          <form>
+              <input
+                className="form-control"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder="Add name of brand"
+              />  
             </form>
           </div>
 
@@ -37,7 +52,7 @@ const CreateBrand = ({ show, onHide }) => {
             >
               Close
             </button>
-            <button type="button" className="btn btn-primary" onClick={onHide}>
+            <button type="button" className="btn btn-primary" onClick={addBrand}>
               Add
             </button>
           </div>

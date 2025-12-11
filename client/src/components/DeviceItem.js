@@ -15,11 +15,15 @@ const DeviceItem = ({ device }) => {
         className="card border-light"
         style={{ width: 150, cursor: "pointer" }}
       >
-        <img width={150} height={150} src={device.img} />
+        <img
+          width={150}
+          height={150}
+          src={process.env.REACT_APP_API_URL + device.img}
+        />
         <div className="text-black-50 row mt-1 d-flex justify-content-between align-items-center">
           <div className="col">Samsung..</div>
           <div className="col-auto d-flex align-items-center">
-            <div>{device.rating}5</div>
+            <div>{device.rating}</div>
             <img width={18} height={18} src={star} alt="star" />
           </div>
         </div>

@@ -1,6 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
+import { createType } from "../../http/deviceAPI";
 
 const CreateType = ({ show, onHide }) => {
+  const [value, setValue] = useState("");
+  const addType = () => {
+    createType({ name: value }).then((data) => {
+      setValue("");
+      onHide();
+    });
+  };
+
   return (
     <div
       className={`modal fade ${show ? "show" : ""}`}
@@ -25,7 +34,12 @@ const CreateType = ({ show, onHide }) => {
 
           <div className="modal-body">
             <form>
-              <input className="form-control" placeholder="Add name of type" />
+              <input
+                className="form-control"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder="Add name of type"
+              />  
             </form>
           </div>
 
@@ -37,7 +51,7 @@ const CreateType = ({ show, onHide }) => {
             >
               Close
             </button>
-            <button type="button" className="btn btn-primary" onClick={onHide}>
+            <button type="button" className="btn btn-primary" onClick={addType}>
               Add
             </button>
           </div>

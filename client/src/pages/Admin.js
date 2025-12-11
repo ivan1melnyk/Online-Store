@@ -7,6 +7,9 @@ const Admin = () => {
   const [brandVisible, setBrandVisible] = useState(false);
   const [typeVisible, setTypeVisible] = useState(false);
   const [deviceVisible, setDeviceVisible] = useState(false);
+
+  console.log("RENDER ADMIN");
+
   return (
     <div className="container d-flex flex-column mt-5">
       <button
@@ -29,10 +32,12 @@ const Admin = () => {
       </button>
       <CreateType show={typeVisible} onHide={() => setTypeVisible(false)} />
       <CreateBrand show={brandVisible} onHide={() => setBrandVisible(false)} />
-      <CreateDevice
-        show={deviceVisible}
-        onHide={() => setDeviceVisible(false)}
-      />
+      {deviceVisible && (
+        <CreateDevice
+          show={deviceVisible}
+          onHide={() => setDeviceVisible(false)}
+        />
+      )}
     </div>
   );
 };

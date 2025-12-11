@@ -6,12 +6,12 @@ module.exports = function (req, res, next) {
   }
   try {
     const token = req.headers.authorization.split(" ")[1];
-    console.log("TOKEN:", token);
     if (!token) {
       return res.status(401).json({ message: "Not authorized" });
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     req.user = decoded;
+    req.token = token;
     next();
   } catch (e) {
     const token = generateJwt(req.user.id, req.user.email, req.user.role);

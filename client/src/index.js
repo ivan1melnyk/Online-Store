@@ -1,22 +1,19 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
+
 import App from "./App";
-import UserStore from "./store/UserStore";
-import DeviceStore from "./store/DeviceStore";
-import { createContext } from "react";
+import { AuthProvider } from "./store/AuthProvider";
+import { DeviceProvider } from "./store/DeviceProvider";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
-export const Context = createContext(null);
+console.log(process.env.REACT_APP_API_URL);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <Context.Provider
-    value={{
-      user: new UserStore(),
-      device: new DeviceStore(),
-    }}
-  >
-    <App />
-  </Context.Provider>
+  <DeviceProvider>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </DeviceProvider>
 );
