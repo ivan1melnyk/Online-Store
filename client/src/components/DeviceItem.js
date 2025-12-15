@@ -34,6 +34,9 @@ const DeviceItem = ({ device, onRemove }) => {
         </div>
         <div>{device.name}</div>
         {onRemove && (
+          <h6 className='row'>  Price: {device.price}</h6>
+        )}
+        {onRemove && (
           <button
             className="btn btn-outline-danger btn-sm mt-2"
             onClick={handleRemove}

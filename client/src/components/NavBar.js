@@ -4,7 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 import { logout } from "../http/userAPI";
 import { authContext } from "../store/AuthProvider";
-import { ADMIN_ROUTE, BASKET_ROUTE, LOGIN_ROUTE, SHOP_ROUTE } from "../utils/consts";
+import {
+  ADMIN_ROUTE,
+  BASKET_ROUTE,
+  LOGIN_ROUTE,
+  SHOP_ROUTE,
+} from "../utils/consts";
 
 const NavBar = () => {
   const navigator = useNavigate();
@@ -49,7 +54,7 @@ const NavBar = () => {
         <div className="container">
           ()
           {authCtx.isAuth ? (
-              <ul className="nav justify-content-end">
+            <ul className="nav justify-content-end">
               <button
                 className="btn btn-light mx-2"
                 onClick={async () => {
