@@ -81,6 +81,12 @@ class DeviceController {
     });
     return res.json(device);
   }
+  async remove(req, res) {
+    const { id } = req.params;
+    const device = await Device.findOne({ where: { id } });
+    await Device.destroy({ where: { id } });
+    res.json({ device });
+  }
 }
 
 module.exports = new DeviceController();

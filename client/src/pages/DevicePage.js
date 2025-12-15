@@ -1,17 +1,30 @@
 import React, { useEffect, useState, useContext } from "react";
 import bigStar from "../assets/bigStar.png";
-import { useParams } from "react-router-dom";
-import { fetchOneDevice } from "../http/deviceAPI";
+import { useParams, useNavigate } from "react-router-dom";
+import { fetchOneDevice, deleteDevice } from "../http/deviceAPI";
 import { authContext } from "../store/AuthProvider";
-
+import { SHOP_ROUTE } from "../utils/consts";
 
 const DevicePage = () => {
   const authCtx = useContext(authContext);
+  const navigate = useNavigate();
   const [device, setDevice] = useState({ info: [] });
+  const isInBasket = (id) => {
+    return authCtx.basket.some((item) => item.id === id);
+  };
   const { id } = useParams();
   useEffect(() => {
     fetchOneDevice(id).then((data) => setDevice(data));
   }, []);
+
+  const adminDeleteDevice = async (id) => {
+    try {
+      await deleteDevice(id);
+      console.log("Device deleted successfully, id:", id);
+    } catch (error) {
+      console.error("Error deleting device:", error);
+    }
+  };
 
   return (
     <div className="container mt-3">
@@ -51,11 +64,42 @@ const DevicePage = () => {
             }}
           >
             <h3>{device.price}</h3>
-            <button className="btn btn-outline-dark"
-            onClick={async () => {
-              authCtx.addDeviceToBasket(device)
-            }}
-            >Add to basket</button>
+            <div className="d-flex flex-column justify-content-center">
+              <button
+                className="btn btn-outline-dark m-1"
+                onClick={async () => {
+                  authCtx.addDeviceToBasket(device);
+                }}
+              >
+                Add to basket
+              </button>
+              {isInBasket(device.id) ? (
+                <button
+                  className="btn btn-outline-danger m-1"
+                  onClick={async () => {
+                    authCtx.removeDeviceFromBasket(device.id);
+                  }}
+                >
+                  Remove from basket
+                </button>
+              ) : (
+                ""
+              )}
+
+              {authCtx.isAdmin ? (
+                <button
+                  className="btn btn-danger m-1"
+                  onClick={async () => {
+                    await adminDeleteDevice(device.id);
+                    navigate(SHOP_ROUTE);
+                  }}
+                >
+                  Delete Device
+                </button>
+              ) : (
+                ""
+              )}
+            </div>
           </div>
         </div>
       </div>

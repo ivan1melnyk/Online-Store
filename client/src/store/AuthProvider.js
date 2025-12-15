@@ -3,8 +3,9 @@ import { useState, createContext, useEffect } from "react";
 export const authContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAuth, setIsAuth] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isAuth, setIsAuth] = useState(false); // Initial authentication state
+  const [user, setUser] = useState(null); // User object, null if not authenticated
+  const [isAdmin, setIsAdmin] = useState(false); // Admin status, derived from user role
   const [quantity_of_goods, setQuantityOfGoods] = useState(() => {
     try {
       const storedBasket = localStorage.getItem("quantity_of_goods");
@@ -28,6 +29,9 @@ export const AuthProvider = ({ children }) => {
     // Persist basket to localStorage whenever it changes
     localStorage.setItem("basket", JSON.stringify(basket));
   }, [basket]);
+  useEffect(() => {
+    setIsAdmin(user && user.role === "ADMIN");
+  }, [user]);
 
   useEffect(() => {
     const quantityOfGoods = JSON.parse(
@@ -108,6 +112,7 @@ export const AuthProvider = ({ children }) => {
 
         user,
         setUser,
+        isAdmin, // Expose isAdmin
         logOut, // expose logout from context
 
         quantity_of_goods,

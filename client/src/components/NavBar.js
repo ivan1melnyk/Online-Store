@@ -63,15 +63,20 @@ const NavBar = () => {
               >
                 Basket
               </button>
-              <button
-                // type="button"
-                className="btn btn-outline-light mx-2"
-                onClick={async () => {
-                  navigator(ADMIN_ROUTE);
-                }}
-              >
-                Admin panel
-              </button>
+
+              {authCtx.isAdmin ? (
+                <button
+                  className="btn btn-outline-light mx-2"
+                  onClick={async () => {
+                    navigator(ADMIN_ROUTE);
+                  }}
+                >
+                  Admin panel
+                </button>
+              ) : (
+                ""
+              )}
+
               <button
                 type="button"
                 className="btn btn-outline-light"

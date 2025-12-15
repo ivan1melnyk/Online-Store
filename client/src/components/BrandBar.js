@@ -11,7 +11,7 @@ const BrandBar = () => {
           key={brand.id}
           style={{ cursor: "pointer" }}
           onClick={() => deviceCtx.setSelectedBrand(brand)}
-          className={`col-6 col-sm-3 border p-2 rounded ${
+          className={`col-5 col-sm-3 border p-2 rounded ${
             brand.id === deviceCtx.selectedBrand?.id
               ? "border-danger"
               : "border-light"

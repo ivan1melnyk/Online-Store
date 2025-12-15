@@ -13,7 +13,7 @@ class TypeController {
   }
   async remove(req, res) {
     try {
-      const { id } = req.body;
+      const { id } = req.params;
       const type = await Type.findOne({ where: { id } });
       console.log("DELETE TYPE", type);
       await Type.destroy({ where: { id } });
