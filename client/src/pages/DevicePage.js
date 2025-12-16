@@ -4,11 +4,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fetchOneDevice, deleteDevice } from "../http/deviceAPI";
 import { authContext } from "../store/AuthProvider";
 import { SHOP_ROUTE } from "../utils/consts";
+import CreateDevice from "../components/modals/CreateDevice";
 
 const DevicePage = () => {
   const authCtx = useContext(authContext);
   const navigate = useNavigate();
   const [device, setDevice] = useState({ info: [] });
+  const [deviceVisible, setDeviceVisible] = useState(false);
   const isInBasket = (id) => {
     return authCtx.basket.some((item) => item.id === id);
   };
@@ -65,15 +67,19 @@ const DevicePage = () => {
           >
             <h3>{device.price}</h3>
             <div className="d-flex flex-column justify-content-center">
-              <button
-                className="btn btn-outline-dark m-1"
-                onClick={async () => {
-                  authCtx.addDeviceToBasket(device);
-                }}
-              >
-                Add to basket
-              </button>
-              {isInBasket(device.id) ? (
+              {authCtx.isAuth ? (
+                <button
+                  className="btn btn-outline-dark m-1"
+                  onClick={async () => {
+                    authCtx.addDeviceToBasket(device);
+                  }}
+                >
+                  Add to basket
+                </button>
+              ) : (
+                ""
+              )}
+              {authCtx.isAuth && isInBasket(device.id) ? (
                 <button
                   className="btn btn-outline-danger m-1"
                   onClick={async () => {
@@ -87,15 +93,28 @@ const DevicePage = () => {
               )}
 
               {authCtx.isAdmin ? (
-                <button
-                  className="btn btn-danger m-1"
-                  onClick={async () => {
-                    await adminDeleteDevice(device.id);
-                    navigate(SHOP_ROUTE);
-                  }}
-                >
-                  Delete Device
-                </button>
+                <div className="d-flex justify-content-center">
+                  <button
+                    className="btn btn-outline-dark m-1"
+                    onClick={() => setDeviceVisible(true)}
+                  >
+                    Edit Device
+                  </button>
+                  <button
+                    className="btn btn-danger m-1"
+                    onClick={async () => {
+                      const confirmDelete = window.confirm(
+                        "Are you sure you want to delete this device?"
+                      );
+                      if (confirmDelete) {
+                        await adminDeleteDevice(device.id);
+                        navigate(SHOP_ROUTE);
+                      }
+                    }}
+                  >
+                    Delete Device
+                  </button>
+                </div>
               ) : (
                 ""
               )}
@@ -121,6 +140,14 @@ const DevicePage = () => {
           </div>
         ))}
       </div>
+      {deviceVisible && (
+        <CreateDevice
+          show={deviceVisible}
+          onHide={() => setDeviceVisible(false)}
+          isUpdate={true}
+          to_edit_id={device.id}
+        />
+      )}
     </div>
   );
 };

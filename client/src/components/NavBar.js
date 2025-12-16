@@ -16,12 +16,9 @@ const NavBar = () => {
   const authCtx = useContext(authContext);
 
   const logOut = async () => {
-    console.log("AAAAAAAAAAAAAAAAAAAAAAA");
     authCtx.setUser({});
-    console.log("BBBBBBBBBBBBBBBBBBBBBBB", authCtx.user);
     authCtx.setIsAuth(false);
     await logout();
-    console.log("CCCCCCCCCCCCCCCCCCCCCCC", authCtx.isAuth);
   };
 
   return (

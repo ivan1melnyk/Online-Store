@@ -1,17 +1,43 @@
-import React, { useState, useContext, useEffect } from "react";
-import { deleteType, fetchTypes } from "../../http/deviceAPI";
+import React, { useState, useContext } from "react";
 import { deviceContext } from "../../store/DeviceProvider";
 
-const DeleteType = ({ show, onHide }) => {
-  const deviceCtx = useContext(deviceContext);
+const Delete = ({ show, onHide, title, options, onDelete, validation }) => {
   const [value, setValue] = useState("");
-  const [type, setType] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const deviceCtx = useContext(deviceContext);
 
-  const removeType = (type) => {
-    deleteType(type.id).then(() => {
-      fetchTypes().then((data) => deviceCtx.setTypes(data));
+  const remove = () => {
+    if (!selected) {
+      alert("Please select an item to delete.");
+      return;
+    }
+
+    if (validation) {
+      const error = validation(selected);
+      if (error) {
+        alert(error);
+        return;
+      }
+    }
+    if (
+      title === "Delete Type" &&
+      deviceCtx.devices.some((d) => d.typeId === selected.id)
+    ) {
+      alert("Cannot delete type. There are devices associated with this type.");
+      return;
+    }
+    if (
+      title === "Delete Brand" &&
+      deviceCtx.devices.some((d) => d.brandId === selected.id)
+    ) {
+      alert(
+        "Cannot delete brand. There are devices associated with this brand."
+      );
+      return;
+    }
+    onDelete(selected).then(() => {
       setValue("");
-      setType(null);
+      setSelected(null);
       onHide();
     });
   };
@@ -29,7 +55,7 @@ const DeleteType = ({ show, onHide }) => {
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Delete a Type</h5>
+            <h5 className="modal-title">{title}</h5>
             <button
               type="button"
               className="btn-close"
@@ -47,21 +73,21 @@ const DeleteType = ({ show, onHide }) => {
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  {value || "Choose type to delete"}
+                  {value || "Choose item to delete"}
                 </button>
-                <ul class="dropdown-menu">
-                  {(deviceCtx.types || []).map((type) => (
-                    <li key={type.id}>
+                <ul className="dropdown-menu">
+                  {(options || []).map((item) => (
+                    <li key={item.id}>
                       <a
                         className="dropdown-item"
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
-                          setValue(type.name);
-                          setType(type); // 👈 store selected type
+                          setValue(item.name);
+                          setSelected(item);
                         }}
                       >
-                        {type.name}
+                        {item.name}
                       </a>
                     </li>
                   ))}
@@ -81,8 +107,8 @@ const DeleteType = ({ show, onHide }) => {
             <button
               type="button"
               className="btn btn-danger"
-              disabled={!type}
-              onClick={() => type && removeType(type)}
+              disabled={!selected}
+              onClick={remove}
             >
               Delete
             </button>
@@ -93,4 +119,4 @@ const DeleteType = ({ show, onHide }) => {
   );
 };
 
-export default DeleteType;
+export default Delete;

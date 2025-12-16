@@ -6,10 +6,11 @@ import {
   fetchDevices,
   fetchTypes,
   fetchBrands,
+  updateDevice,
 } from "../../http/deviceAPI";
 import e from "cors";
 
-const CreateDevice = ({ show, onHide }) => {
+const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
   const deviceCtx = useContext(deviceContext);
 
   const [name, setName] = useState("");
@@ -41,18 +42,58 @@ const CreateDevice = ({ show, onHide }) => {
   };
 
   const addDevice = () => {
+    if (
+      !name ||
+      !price ||
+      !file ||
+      !deviceCtx.selectedBrand.id ||
+      !deviceCtx.selectedType.id
+    ) {
+      alert(
+        "Please fill in all required fields: Name, Price, Image, Type, and Brand."
+      );
+      return;
+    }
+
     const formData = new FormData();
     formData.append("name", name);
     formData.append("price", price);
     formData.append("img", file);
     formData.append("brandId", deviceCtx.selectedBrand.id);
     formData.append("typeId", deviceCtx.selectedType.id);
-    formData.append("info", JSON.stringify(info));
+    if (info.length > 0) {
+      formData.append("info", JSON.stringify(info));
+    }
 
     createDevice(formData).then((data) => {
-      console.log("22222222", data);
-      // <-- The error happens here
-      //fetchDevices().then((data) => deviceCtx.setDevices(data));
+      fetchDevices().then((data) => deviceCtx.setDevices(data));
+      onHide();
+    });
+  };
+
+  const editDevice = (id) => {
+    const formData = new FormData();
+    if (name) {
+      formData.append("name", name);
+    }
+    if (price > 0) {
+      const priceString = JSON.stringify(price);
+      formData.append("price", priceString);
+    }
+    if (file) {
+      formData.append("img", file);
+    }
+    if (deviceCtx.selectedBrand.id) {
+      formData.append("brandId", deviceCtx.selectedBrand.id);
+    }
+    if (deviceCtx.selectedType.id) {
+      formData.append("typeId", deviceCtx.selectedType.id);
+    }
+    if (info.length > 0) {
+      formData.append("info", JSON.stringify(info));
+    }
+    updateDevice(id, formData).then((data) => {
+      fetchDevices().then((data) => deviceCtx.setDevices(data));
       onHide();
     });
   };
@@ -70,7 +111,11 @@ const CreateDevice = ({ show, onHide }) => {
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Add new Device</h5>
+            {isUpdate ? (
+              <h5 className="modal-title">Edit Device</h5>
+            ) : (
+              <h5 className="modal-title">Add new Device</h5>
+            )}
             <button
               type="button"
               className="btn-close"
@@ -194,13 +239,23 @@ const CreateDevice = ({ show, onHide }) => {
             >
               Close
             </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={addDevice}
-            >
-              Add
-            </button>
+            {isUpdate ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => editDevice(to_edit_id)}
+              >
+                Update
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={addDevice}
+              >
+                Add
+              </button>
+            )}
           </div>
         </div>
       </div>
