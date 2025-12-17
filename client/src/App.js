@@ -13,12 +13,30 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Additional check
   useEffect(() => {
     check()
       .then((data) => {
         authCtx.setUser((prev) => ({ ...prev, ...data }));
         authCtx.setIsAuth(true);
+      })
+      .catch((error) => {
+        console.error("Auth check failed:", error);
+        setError(error.message);
+        // User is not authenticated, continue without setting auth
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Additional check
+  useEffect(() => {
+    check()
+      .then((data) => {
+        if (data.id !== authCtx.user.id) {
+          authCtx.setUser((prev) => ({ ...prev, ...data }));
+        }
+        if (authCtx.isAuth !== true) {
+          authCtx.setIsAuth(true);
+        }
       })
       .catch((error) => {
         console.error("Auth check failed:", error);
@@ -34,7 +52,6 @@ const App = () => {
 
   if (error) {
     console.log("Auth error, but continuing:", error);
-    console.log("UUUUUUUUUUUUUUUUUUU");
   }
 
   return (

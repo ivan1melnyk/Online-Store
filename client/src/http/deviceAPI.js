@@ -45,7 +45,6 @@ export const fetchDevices = async (typeId, brandId, page, limit = 8) => {
       limit,
     },
   });
-  console.log("11111 FETCH DEVICES", data);
   return data;
 };
 
@@ -56,6 +55,7 @@ export const fetchOneDevice = async (id) => {
 
 export const updateDevice = async (id, device) => {
   const { data } = await $authHost.patch("api/device/" + id, device);
+  console.log("UPDATE DEVICE", data);
   return data;
 };
 

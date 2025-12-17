@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, use } from "react";
 import bigStar from "../assets/bigStar.png";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchOneDevice, deleteDevice } from "../http/deviceAPI";
@@ -65,7 +65,22 @@ const DevicePage = () => {
               border: "5px solid lightgray",
             }}
           >
-            <h3>{device.price}</h3>
+            <div>
+              <div className="row">
+                <h5 className="col">Type </h5>
+                <h5 className="col text-end">{device.type}</h5>
+              </div>
+              <div className="row">
+                <h5 className="col">Brand</h5>
+                <h5 className="col text-end">{device.brand}</h5>
+              </div>
+              <div className="row">
+                <h5 className="col">Price </h5>
+                <h5 className="col text-success fw-semibold text-end">
+                  ${device.price}
+                </h5>
+              </div>
+            </div>
             <div className="d-flex flex-column justify-content-center">
               {authCtx.isAuth ? (
                 <button
@@ -145,7 +160,7 @@ const DevicePage = () => {
           show={deviceVisible}
           onHide={() => setDeviceVisible(false)}
           isUpdate={true}
-          to_edit_id={device.id}
+          deviceToEdit={device}
         />
       )}
     </div>

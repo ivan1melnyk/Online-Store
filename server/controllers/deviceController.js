@@ -2,6 +2,8 @@ const uuid = require("uuid");
 const path = require("path");
 const { Device, DeviceInfo } = require("../models/models");
 const ApiError = require("../error/ApiError");
+const { Type } = require("../models/models");
+const { Brand } = require("../models/models");
 
 class DeviceController {
   async create(req, res, next) {
@@ -81,16 +83,28 @@ class DeviceController {
       where: { id },
       include: [{ model: DeviceInfo, as: "info" }],
     });
+
+    const type = await Type.findOne({ where: { id: device.typeId } });
+    device.dataValues.type = type.name;
+    const brand = await Brand.findOne({ where: { id: device.brandId } });
+    device.dataValues.brand = brand.name;
+
     return res.json(device);
   }
   async update(req, res, next) {
     try {
-      console.log("UPDATE DEVICE");
       const { id } = req.params;
-      const { name, price, brandId, typeId, info } = req.body;
+
+      const { name, price, brandId, typeId, info: infoJSON } = req.body;
+      const info = infoJSON ? JSON.parse(infoJSON) : [];
       const { img } = req.files || {};
 
       const device = await Device.findOne({ where: { id } });
+      if (!device) {
+        return next(ApiError.badRequerst("Device not found"));
+      }
+
+      let newInfos = [];
 
       if (img) {
         let fileName = uuid.v4() + ".jpg";
@@ -102,6 +116,7 @@ class DeviceController {
       }
       if (price) {
         device.price = JSON.stringify(price);
+        device.price = price;
       }
       if (brandId) {
         device.brandId = brandId;
@@ -109,23 +124,61 @@ class DeviceController {
       if (typeId) {
         device.typeId = typeId;
       }
-      if (info) {
-        await DeviceInfo.destroy({ where: { deviceId: id } });
+      if (info.length > 0) {
+        // await DeviceInfo.destroy({ where: { deviceId: id } });
 
-        await Promise.all(
-          info.map(async ({ title = "", description = "" }) => {
-            if (!title || !description) return null;
+        // await Promise.all(
+        //   info.map(async ({ title = "", description = "" }) => {
+        //     if (!title || !description) return null;
 
-            return DeviceInfo.create({
-              title,
-              description,
-              deviceId: device.id,
-            });
-          })
-        );
+        //     return DeviceInfo.create({
+        //       title,
+        //       description,
+        //       deviceId: device.id,
+        //     });
+        //   })
+        // );
+
+        // const infoToCreate = info.filter(async ({ id, title = "", description = "" }) => {
+
+        // LEARN IT
+
+        // const { infoToCreate, infoToUpdate } = ((info) => {
+        //   return info.reduce(
+        //     (result, item) => {
+        //       const { id, title = "", description = "" } = item;
+        //       const readyItem = { title, description, deviceId: device.id };
+        //       if (id) result.infoToCreate.push(readyItem);
+        //       else result.infoToUpdate.push({ id, ...readyItem });
+        //       return result;
+        //     },
+        //     { infoToCreate: [], infoToUpdate: [] }
+        //   );
+        // })(info);
+
+        const infoReadyToBulkCreate = info.map((i) => {
+          const { title = "", description = "" } = i;
+          const res = { title, description, deviceId: device.id };
+          if (i.id) res.id = i.id;
+          return res;
+        });
+
+        newInfos = await DeviceInfo.bulkCreate(infoReadyToBulkCreate, {
+          updateOnDuplicate: ["title", "description"],
+          validate: true,
+          returning: true,
+        });
       }
+
+      console.log("BEFORE SAVE UPDATED DEVICE", device);
+
       await device.save();
-      return res.json(device);
+
+      newInfos = newInfos.map((info) => info.dataValues);
+      device.dataValues.info = newInfos;
+      console.log("UPDATED DEVICE", device);
+
+      return res.json(device.dataValues);
     } catch (e) {
       next(ApiError.badRequerst(e.message));
     }

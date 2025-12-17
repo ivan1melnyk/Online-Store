@@ -10,7 +10,12 @@ import {
 } from "../../http/deviceAPI";
 import e from "cors";
 
-const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
+const CreateDevice = ({
+  show,
+  onHide,
+  isUpdate = false,
+  deviceToEdit = null,
+}) => {
   const deviceCtx = useContext(deviceContext);
 
   const [name, setName] = useState("");
@@ -23,17 +28,32 @@ const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
     fetchBrands().then((data) => deviceCtx.setBrands(data));
   }, []);
 
+  useEffect(() => {
+    const isCreate = !isUpdate;
+    if (isUpdate && deviceToEdit) {
+      setName(deviceToEdit.name);
+      setPrice(deviceToEdit.price);
+      setInfo(deviceToEdit.info.map((i) => ({ ...i, localId: i.id }))); // existing info from DB (must include id)
+    } else if (isCreate) {
+      setName("");
+      setPrice(0);
+      setInfo([]);
+    }
+  }, [isUpdate, deviceToEdit]);
+
+  // localId is as well 1765916205612 - Date.now()
+  // as                  1, 4, 6, 24  - id of db object
   const addInfo = () => {
-    setInfo([...info, { title: "", description: "", number: Date.now() }]);
+    setInfo([...info, { title: "", description: "", localId: Date.now() }]);
   };
 
-  const removeInfo = (number) => {
-    setInfo(info.filter((i) => i.number !== number));
+  const removeInfo = (item) => {
+    setInfo(info.filter((i) => i.localId !== item.localId));
   };
 
-  const changeInfo = (key, value, number) => {
+  const changeInfo = (key, value, localIdArg) => {
     setInfo(
-      info.map((i) => (i.number === number ? { ...i, [key]: value } : i))
+      info.map((i) => (i.localId === localIdArg ? { ...i, [key]: value } : i))
     );
   };
 
@@ -73,29 +93,29 @@ const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
 
   const editDevice = (id) => {
     const formData = new FormData();
-    if (name) {
-      formData.append("name", name);
-    }
-    if (price > 0) {
-      const priceString = JSON.stringify(price);
-      formData.append("price", priceString);
-    }
-    if (file) {
-      formData.append("img", file);
-    }
-    if (deviceCtx.selectedBrand.id) {
+
+    if (name) formData.append("name", name);
+    if (price > 0) formData.append("price", price);
+    if (file) formData.append("img", file);
+    if (deviceCtx.selectedBrand.id)
       formData.append("brandId", deviceCtx.selectedBrand.id);
-    }
-    if (deviceCtx.selectedType.id) {
+    if (deviceCtx.selectedType.id)
       formData.append("typeId", deviceCtx.selectedType.id);
-    }
+
     if (info.length > 0) {
-      formData.append("info", JSON.stringify(info));
+      const infoWithoutLocalId = info.map(({ localId: _, ...i }) => i);
+      formData.append("info", JSON.stringify(infoWithoutLocalId));
     }
-    updateDevice(id, formData).then((data) => {
-      fetchDevices().then((data) => deviceCtx.setDevices(data));
+
+    updateDevice(id, formData).then(() => {
+      fetchDevices().then((data) => {
+        deviceCtx.setDevices(data);
+
+        console.log("REFRESHED DEVICES AFTER UPDATE: fetchDevices", data);
+      });
       onHide();
     });
+    window.location.reload();
   };
 
   return (
@@ -126,20 +146,20 @@ const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
 
           <div className="modal-body">
             <form>
-              <div class="dropdown">
+              <div className="dropdown">
                 <button
-                  class="btn btn-secondary dropdown-toggle"
+                  className="btn btn-secondary dropdown-toggle"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
                   {deviceCtx.selectedType.name || "Choose the type of device"}
                 </button>
-                <ul class="dropdown-menu">
+                <ul className="dropdown-menu">
                   {(deviceCtx.types || []).map((type) => (
                     <li>
                       <a
-                        class="dropdown-item"
+                        className="dropdown-item"
                         onClick={() => deviceCtx.setSelectedType(type)}
                         key={type.id}
                         href="#"
@@ -150,20 +170,20 @@ const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
                   ))}
                 </ul>
               </div>
-              <div class="dropdown mt-3">
+              <div className="dropdown mt-3">
                 <button
-                  class="btn btn-secondary dropdown-toggle"
+                  className="btn btn-secondary dropdown-toggle"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
                   {deviceCtx.selectedBrand.name || "Choose the brand of device"}
                 </button>
-                <ul class="dropdown-menu">
+                <ul className="dropdown-menu">
                   {(deviceCtx.brands || []).map((brand) => (
                     <li>
                       <a
-                        class="dropdown-item"
+                        className="dropdown-item"
                         onClick={() => deviceCtx.setSelectedBrand(brand)}
                         key={brand.id}
                         href="#"
@@ -198,13 +218,13 @@ const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
               Add new character
             </button>
             {(info || []).map((i) => (
-              <div className="row mt-3" key={i.number}>
+              <div className="row mt-3" key={i.localId}>
                 <div className="col-md-4">
                   <input
                     className="form-control"
                     value={i.title}
                     onChange={(e) =>
-                      changeInfo("title", e.target.value, i.number)
+                      changeInfo("title", e.target.value, i.localId)
                     }
                     placeholder="Write name of character"
                   />
@@ -214,7 +234,7 @@ const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
                     className="form-control"
                     value={i.description}
                     onChange={(e) =>
-                      changeInfo("description", e.target.value, i.number)
+                      changeInfo("description", e.target.value, i.localId)
                     }
                     placeholder="Write description of character"
                   />
@@ -222,15 +242,32 @@ const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
                 <div className="col-md-4">
                   <button
                     className="btn btn-outline-danger"
-                    onClick={() => removeInfo(i.number)}
+                    onClick={() => removeInfo(i)}
                   >
                     Delete
                   </button>
                 </div>
               </div>
             ))}
-          </div>
+            {/* {isUpdate && (
+            <>
+              <hr />
+            <button className="btn btn-outline-danger" onClick={addInfo}>
+              Add new character
+            </button>
 
+              {delInfo.length === 0 && (
+                <div className="text-muted">No deleted characteristics</div>
+              )}
+
+              {delInfo.map((id) => (
+                <div key={id} className="text-danger">
+                  Characteristic ID {id} will be deleted
+                </div>
+              ))}
+            </>
+          )} */}
+          </div>
           <div className="modal-footer">
             <button
               type="button"
@@ -243,7 +280,7 @@ const CreateDevice = ({ show, onHide, isUpdate = false, to_edit_id = 0 }) => {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => editDevice(to_edit_id)}
+                onClick={() => editDevice(deviceToEdit.id)}
               >
                 Update
               </button>
