@@ -4,6 +4,7 @@ const { Device, DeviceInfo } = require("../models/models");
 const ApiError = require("../error/ApiError");
 const { Type } = require("../models/models");
 const { Brand } = require("../models/models");
+const cloudinaryService = require("../middleware/cloudinaryService");
 
 class DeviceController {
   async create(req, res, next) {
@@ -15,13 +16,28 @@ class DeviceController {
       const { img } = req.files;
       let fileName = uuid.v4() + ".jpg";
       img.mv(path.resolve(__dirname, "..", "static", fileName));
+
+      const cloudinaryResult = await cloudinaryService.uploadImage("static/" + fileName);
+      // Delete the local file after successful upload
+      const fs = require('fs');
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error('Error deleting local file:', err);
+        } else {
+          console.log('Local file deleted:', filePath);
+        }
+      });
+
+      
       const device = await Device.create({
         name,
         price,
         brandId,
         typeId,
-        img: fileName,
+        img: cloudinaryResult.public_id,
       });
+
+      
 
       if (info) {
         const parsedInfo = JSON.parse(info);
@@ -46,50 +62,83 @@ class DeviceController {
     }
   }
   async getAll(req, res) {
-    let { brandId, typeId, limit, page } = req.query;
-    page = page || 1;
-    limit = limit || 9;
-    let offset = page * limit - limit;
-    let devices;
-    if (!brandId && !typeId) {
-      devices = await Device.findAndCountAll({ limit, offset });
-    }
-    if (!brandId && typeId) {
-      devices = await Device.findAndCountAll({
-        where: { typeId },
-        limit,
-        offset,
-      });
-    }
-    if (brandId && !typeId) {
-      devices = await Device.findAndCountAll({
-        where: { brandId },
-        limit,
-        offset,
-      });
-    }
-    if (brandId && typeId) {
-      devices = await Device.findAndCountAll({
-        where: { typeId, brandId },
-        limit,
-        offset,
-      });
-    }
-    return res.json(devices);
+    try {
+          console.log('Get all devices query params:', req.query);
+
+          let { brandId, typeId, limit, page } = req.query;
+          page = page || 1;
+          limit = limit || 9;
+          let offset = page * limit - limit;
+          let devices;
+          if (!brandId && !typeId) {
+            devices = await Device.findAndCountAll({ limit, offset });
+          }
+          if (!brandId && typeId) {
+            devices = await Device.findAndCountAll({
+              where: { typeId },
+              limit,
+              offset,
+            });
+          }
+          if (brandId && !typeId) {
+            devices = await Device.findAndCountAll({
+              where: { brandId },
+              limit,
+              offset,
+            });
+          }
+          if (brandId && typeId) {
+            devices = await Device.findAndCountAll({
+              where: { typeId, brandId },
+              limit,
+              offset,
+            });
+          }
+
+          console.log('Found devices:', devices.rows.length);
+
+          // Додаємо повні URL до кожного девайсу
+          const devicesWithUrls = devices.rows.map(device => ({
+            ...device.toJSON(),
+            imgUrl: cloudinaryService.getOptimizedImageUrl(device.img)
+          }));
+          
+          return res.json({
+            count: devices.count,
+            rows: devicesWithUrls
+          });
+        } catch (e) {
+          console.error('Error in getAll devices:', e);
+          return res.status(500).json({ message: e.message });
+        }
   }
   async getOne(req, res) {
-    const { id } = req.params;
-    const device = await Device.findOne({
-      where: { id },
-      include: [{ model: DeviceInfo, as: "info" }],
-    });
+    try {
+      const { id } = req.params;
+      const device = await Device.findOne({
+        where: { id },
+        include: [{ model: DeviceInfo, as: "info" }],
+      });
 
-    const type = await Type.findOne({ where: { id: device.typeId } });
-    device.dataValues.type = type.name;
-    const brand = await Brand.findOne({ where: { id: device.brandId } });
-    device.dataValues.brand = brand.name;
+      if (!device) {
+        return res.status(404).json({ message: "Device not found" });
+      }
 
-    return res.json(device);
+      const deviceWithUrl = {
+        ...device.toJSON(),
+        imgUrl: cloudinaryService.getOptimizedImageUrl(device.img)
+      };
+      
+      return res.json(deviceWithUrl);
+    } catch (e) {
+      return res.status(500).json({ message: e.message });
+    }
+
+
+    // const type = await Type.findOne({ where: { id: device.typeId } });
+    // device.dataValues.type = type.name;
+    // const brand = await Brand.findOne({ where: { id: device.brandId } });
+    // device.dataValues.brand = brand.name;
   }
   async update(req, res, next) {
     try {

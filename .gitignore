@@ -1,5 +1,5 @@
 .env
-server/node_models/
+server/node_modules
 server/static
 
 

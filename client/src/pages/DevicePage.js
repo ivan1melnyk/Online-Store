@@ -35,7 +35,8 @@ const DevicePage = () => {
           <img
             width={300}
             height={300}
-            src={process.env.REACT_APP_API_URL + device.img}
+            src={device.imgUrl}
+            alt={device.name}
           />
         </div>
         <div className="col-md-4">

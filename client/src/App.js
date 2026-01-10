@@ -31,6 +31,7 @@ const App = () => {
   useEffect(() => {
     check()
       .then((data) => {
+        console.log("Additional check successful:", data);
         if (data.id !== authCtx.user.id) {
           authCtx.setUser((prev) => ({ ...prev, ...data }));
         }

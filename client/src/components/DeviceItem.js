@@ -23,7 +23,8 @@ const DeviceItem = ({ device, onRemove }) => {
         <img
           width={150}
           height={150}
-          src={process.env.REACT_APP_API_URL + device.img}
+          src={device.imgUrl}
+          alt={device.name}
         />
         <div className="text-black-50 row mt-1 d-flex justify-content-between align-items-center">
           <div className="col">Samsung..</div>

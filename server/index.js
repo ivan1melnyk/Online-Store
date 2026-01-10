@@ -12,7 +12,43 @@ const PORT = process.env.SERVER_PORT || 5000;
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.resolve(__dirname, "static")));
+// В index.js або створіть тестовий роут
+app.get('/api/test-cloudinary', async (req, res) => {
+  try {
+    const cloudinary = require('cloudinary').v2;
+    
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true
+    });
+    
+    // Спробуйте отримати URL для тестового зображення
+    const testUrl = cloudinary.url('sample', {
+      width: 300,
+      height: 300,
+      crop: 'fill',
+      secure: true
+    });
+    
+    res.json({
+      success: true,
+      cloudinaryConfig: {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key_set: !!process.env.CLOUDINARY_API_KEY,
+        api_secret_set: !!process.env.CLOUDINARY_API_SECRET
+      },
+      testUrl: testUrl
+    });
+  } catch (error) {
+    console.error('Cloudinary test error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 app.use(cors({ origin: "*" }));
 app.use(fileUpload({}));
 app.use("/api", router);
