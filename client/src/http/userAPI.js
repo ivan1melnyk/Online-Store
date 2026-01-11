@@ -16,7 +16,6 @@ export const login = async (email, password) => {
     email,
     password,
   });
-  console.log("AAAAAAA", data.token, typeof data.token);
   localStorage.setItem("token", data.token);
   return jwtDecode(data.token);
 };

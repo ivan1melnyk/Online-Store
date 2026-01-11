@@ -12,7 +12,9 @@ const PORT = process.env.SERVER_PORT || 5000;
 
 const app = express();
 app.use(express.json());
-// В index.js або створіть тестовий роут
+app.get("/", (req, res) => {
+  res.send("API is running 🚀");
+});
 app.get('/api/test-cloudinary', async (req, res) => {
   try {
     const cloudinary = require('cloudinary').v2;

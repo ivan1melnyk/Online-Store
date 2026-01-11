@@ -15,6 +15,7 @@ const DevicePage = () => {
     return authCtx.basket.some((item) => item.id === id);
   };
   const { id } = useParams();
+  
   useEffect(() => {
     fetchOneDevice(id).then((data) => setDevice(data));
   }, []);
