@@ -22,14 +22,14 @@ class DeviceController {
       // const cloudinaryResult = await cloudinaryService.uploadImage("static/" + fileName);
       const buffer = img.data; // express-fileupload дає буфер файлу
 
-      const cloudinaryResult = cloudinaryService.uploadImage(buffer);
+      const cloudinaryResult = await cloudinaryService.uploadImage(buffer);
 
       const device = await Device.create({
         name,
         price,
         brandId,
         typeId,
-        img: cloudinaryResult.public_id,
+        img: cloudinaryResult.secure_url,
       });
 
       if (info) {
